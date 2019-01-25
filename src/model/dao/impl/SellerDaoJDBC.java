@@ -55,16 +55,15 @@ public class SellerDaoJDBC implements SellerDao {
 			 * Orientado a Objetos, na memória do computador precisamos instanciar essas informações
 			   em formato de objetos, para isso vamos navegar na bela caso exista os dados */
 			if (rs.next()) {
-				Department dep = new Department();
-				dep.setId(rs.getInt("DepartmentId"));
-				dep.setName(rs.getString("DepName"));
-				Seller seller = new Seller();
-				seller.setId(rs.getInt("Id"));
-				seller.setName(rs.getString("Name"));
-				seller.setEmail(rs.getString("Email"));
-				seller.setBaseSalary(rs.getDouble("BaseSalary"));
-				seller.setBirthDate(rs.getDate("BirthDate"));
-				seller.setDepartment(dep);
+				Department dep = instatiatedDepartment(rs); 
+				Seller seller = instatiatedSeller(rs, dep);
+				/* Os métods acima instatiatedDepartment(rs) e instatiatedSeller(rs, dep)
+				 * que são instanciados e retornam os respctivos objetos forma criados para
+				 * deixar o código mais enxuto e reaproveita-los; Antes o Departamento foi criado assim:
+				 * Department dep = new Department();
+				 * dep.setId(rs.getInt("DepartmentId"));
+				 * dep.setName(rs.getString("DepName"));
+				 */
 				return seller;
 			}
 			return null;
@@ -77,6 +76,26 @@ public class SellerDaoJDBC implements SellerDao {
 			DB.closeResultSet(rs);
 		}		
 	}
+
+	private Seller instatiatedSeller(ResultSet rs, Department dep) throws SQLException {
+		Seller seller = new Seller();
+		seller.setId(rs.getInt("Id"));
+		seller.setName(rs.getString("Name"));
+		seller.setEmail(rs.getString("Email"));
+		seller.setBaseSalary(rs.getDouble("BaseSalary"));
+		seller.setBirthDate(rs.getDate("BirthDate"));
+		seller.setDepartment(dep);
+		return seller;
+	}
+
+	private Department instatiatedDepartment(ResultSet rs) throws SQLException {
+		Department dep = new Department();
+		dep.setId(rs.getInt("DepartmentId"));
+		dep.setName(rs.getString("DepName"));
+		return dep;
+	}
+	
+	
 
 	@Override
 	public List<Seller> findAll() {
