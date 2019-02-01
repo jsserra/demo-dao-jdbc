@@ -16,9 +16,9 @@ import model.entities.Department;
 import model.entities.Seller;
 
 public class SellerDaoJDBC implements SellerDao {
-	
+
 	private Connection conn;
-	
+
 	public SellerDaoJDBC(Connection conn) {
 		this.conn = conn;
 	}
@@ -26,19 +26,19 @@ public class SellerDaoJDBC implements SellerDao {
 	@Override
 	public void insert(Seller obj) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(Seller obj) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void deleteById(Integer id) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -47,37 +47,36 @@ public class SellerDaoJDBC implements SellerDao {
 		ResultSet rs = null;
 		try {
 			st = conn.prepareStatement(
-					"SELECT seller.*, department.Name as DepName "
-					+ "FROM seller INNER JOIN department "
-					+ "ON seller.DepartmentId = department.Id "
-					+ "WHERE seller.Id = ?" );
-					
+					"SELECT seller.*, department.Name as DepName " + "FROM seller INNER JOIN department "
+							+ "ON seller.DepartmentId = department.Id " + "WHERE seller.Id = ?");
+
 			st.setInt(1, id);
 			rs = st.executeQuery();
-			/* O ResultSet retorna os dados em formato de tabela, e como estamos trabalhando
-			 * Orientado a Objetos, na memória do computador precisamos instanciar essas informações
-			   em formato de objetos, para isso vamos navegar na bela caso exista os dados */
+			/*
+			 * O ResultSet retorna os dados em formato de tabela, e como estamos trabalhando
+			 * Orientado a Objetos, na memória do computador precisamos instanciar essas
+			 * informações em formato de objetos, para isso vamos navegar na bela caso
+			 * exista os dados
+			 */
 			if (rs.next()) {
-				Department dep = instatiatedDepartment(rs); 
+				Department dep = instatiatedDepartment(rs);
 				Seller seller = instatiatedSeller(rs, dep);
-				/* Os métods acima instatiatedDepartment(rs) e instatiatedSeller(rs, dep)
-				 * que são instanciados e retornam os respctivos objetos forma criados para
-				 * deixar o código mais enxuto e reaproveita-los; Antes o Departamento foi criado assim:
-				 * Department dep = new Department();
-				 * dep.setId(rs.getInt("DepartmentId"));
+				/*
+				 * Os métods acima instatiatedDepartment(rs) e instatiatedSeller(rs, dep) que
+				 * são instanciados e retornam os respctivos objetos forma criados para deixar o
+				 * código mais enxuto e reaproveita-los; Antes o Departamento foi criado assim:
+				 * Department dep = new Department(); dep.setId(rs.getInt("DepartmentId"));
 				 * dep.setName(rs.getString("DepName"));
 				 */
 				return seller;
 			}
 			return null;
-		}
-		catch (SQLException e) {
+		} catch (SQLException e) {
 			throw new DbException(e.getMessage());
-		}
-		finally {
+		} finally {
 			DB.closeStatement(st);
 			DB.closeResultSet(rs);
-		}		
+		}
 	}
 
 	private Seller instatiatedSeller(ResultSet rs, Department dep) throws SQLException {
@@ -97,51 +96,74 @@ public class SellerDaoJDBC implements SellerDao {
 		dep.setName(rs.getString("DepName"));
 		return dep;
 	}
-	
-	
-	@Override
-	public List<Seller> findAll() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
-	public List<Seller> findByDepartment(Department department) {
-			PreparedStatement st = null;
-			ResultSet rs = null;
-			try {
-			st = conn.prepareStatement(
-					"SELECT seller.*,department.Name as DepName "  
-					+ "FROM seller INNER JOIN department " 
-					+ "ON seller.DepartmentId = department.Id "  
-					+ "WHERE DepartmentId = ? "  
+	public List<Seller> findAll() {
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		try {
+			st = conn.prepareStatement("SELECT seller.*, department.Name as DepName "
+					+ "FROM seller INNER JOIN department "
+					+ "ON seller.DepartmentId = department.Id "
 					+ "ORDER BY Name");
-			st.setInt(1, department.getId());
 			rs = st.executeQuery();
-			
+
 			List<Seller> list = new ArrayList<>();
 			Map<Integer, Department> map = new HashMap<>();
-			
+
 			while (rs.next()) {
-				
-				Department dep = map.get(rs.getInt("DepartmentId")); 
-				
+
+				Department dep = map.get(rs.getInt("DepartmentId"));
+
 				if (dep == null) {
 					dep = instatiatedDepartment(rs);
 					map.put(rs.getInt("DepartmentId"), dep);
 				}
 				Seller obj = instatiatedSeller(rs, dep);
-				list.add(obj);				
+				list.add(obj);
 			}
 			return list;
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
+
+	}
+
+	@Override
+	public List<Seller> findByDepartment(Department department) {
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		try {
+			st = conn.prepareStatement(
+					"SELECT seller.*,department.Name as DepName " + "FROM seller INNER JOIN department "
+							+ "ON seller.DepartmentId = department.Id " + "WHERE DepartmentId = ? " + "ORDER BY Name");
+			st.setInt(1, department.getId());
+			rs = st.executeQuery();
+
+			List<Seller> list = new ArrayList<>();
+			Map<Integer, Department> map = new HashMap<>();
+
+			while (rs.next()) {
+
+				Department dep = map.get(rs.getInt("DepartmentId"));
+
+				if (dep == null) {
+					dep = instatiatedDepartment(rs);
+					map.put(rs.getInt("DepartmentId"), dep);
+				}
+				Seller obj = instatiatedSeller(rs, dep);
+				list.add(obj);
 			}
-			catch (SQLException e) {
-				throw new DbException(e.getMessage());
-			}
-			finally {
-				DB.closeStatement(st);
-				DB.closeResultSet(rs);
-			}	
+			return list;
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
 	}
 
 }
